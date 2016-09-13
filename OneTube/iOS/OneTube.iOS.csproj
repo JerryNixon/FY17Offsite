@@ -100,9 +100,9 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\OneTube\OneTube.csproj">
-      <Project>{FBAE56C8-2B06-4E1C-81D8-995A30F70B14}</Project>
-      <Name>OneTube</Name>
+    <ProjectReference Include="..\PCL\PCL.csproj">
+      <Project>{D2238832-9EA6-4027-92A0-1BC0F9FAEE5B}</Project>
+      <Name>PCL</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
