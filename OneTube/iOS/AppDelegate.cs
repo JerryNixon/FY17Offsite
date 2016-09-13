@@ -3,6 +3,8 @@ using OneTube.Controllers;
 using UIKit;
 using System.Threading.Tasks;
 using System;
+using PCL.Models;
+using OneTube.Models;
 
 namespace OneTube.iOS
 {
@@ -13,7 +15,10 @@ namespace OneTube.iOS
 	{
 		// class-level declarations
 
-		public FileController fileController = new FileController("https://1drv.ms/f/s!Aq5BEHo6GlC-gfhXWNUebFUWLAJJyg");
+		public FileController fileController = new FileController(new Channel { ChannelUrl = "https://1drv.ms/f/s!Aq5BEHo6GlC-gfhXWNUebFUWLAJJyg" });
+
+		public VideoFile SelectedVideo { get; set; }
+		public OneDriveFolder SelectedFolder { get; set; }
 
 		public nfloat ScreenWidth;
 		public nfloat ScreenHeight;
@@ -28,7 +33,7 @@ namespace OneTube.iOS
 #endif
 			Window = new UIWindow(UIScreen.MainScreen.Bounds);
 
-			var controller = new FolderContentViewController();
+			var controller = new UINavigationController(new MyChannelsTableViewController());
 			Window.RootViewController = controller;
 
 			//Task.Factory.StartNew(async () => await fileController.GetFolderValuesContentAsync("https://1drv.ms/f/s!Aq5BEHo6GlC-gfhXWNUebFUWLAJJyg"));

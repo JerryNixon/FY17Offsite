@@ -28,14 +28,7 @@ namespace OneTube.UITests
 		[Test]
 		public void ClickingButtonTwiceShouldChangeItsLabel()
 		{
-			Func<AppQuery, AppQuery> button = c => c.Button("myButton");
-
-			app.Tap(button);
-			app.Tap(button);
-			AppResult[] results = app.Query(button);
-			app.Screenshot("Button clicked twice.");
-
-			Assert.AreEqual("2 clicks!", results[0].Text ?? results[0].Label);
+			app.Repl();
 		}
 	}
 }

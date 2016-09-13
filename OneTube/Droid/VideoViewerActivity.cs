@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using OneTube.Models;
 using System;
 using Android.Content.Res;
+using PCL.Models;
 
 namespace OneTube.Droid
 {
@@ -14,7 +15,7 @@ namespace OneTube.Droid
 	public class MainActivity : AppCompatActivity
 	{
 		int count = 1;
-		FileController fileController = new FileController("https://1drv.ms/f/s!Aq5BEHo6GlC-gfhXWNUebFUWLAJJyg");
+		FileController fileController = new FileController(new Channel { ChannelUrl = "https://1drv.ms/f/s!Aq5BEHo6GlC-gfhXWNUebFUWLAJJyg" });
 		VideoView videoPlayer;
 		int videoPlayerPosition = 0;
 		bool isInitialized;

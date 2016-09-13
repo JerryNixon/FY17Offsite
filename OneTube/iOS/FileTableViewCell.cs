@@ -3,6 +3,7 @@ using UIKit;
 using OneTube.Models;
 using Foundation;
 using CoreGraphics;
+using System.Threading.Tasks;
 
 namespace OneTube.iOS
 {
@@ -40,7 +41,7 @@ namespace OneTube.iOS
 		public override void LayoutSubviews()
 		{
 			base.LayoutSubviews();
-			imageView.Frame = new CGRect(ContentView.Bounds.Width - 63, 5, 33, 33);
+			imageView.Frame = new CGRect(5, 5, 33, 33);
 			headingLabel.Frame = new CGRect(5, 4, ContentView.Bounds.Width - 63, 25);
 			subheadingLabel.Frame = new CGRect(100, 18, 100, 20);
 		}
@@ -49,12 +50,19 @@ namespace OneTube.iOS
 		{
 			if (!string.IsNullOrEmpty(videoFile.ThumbnailUrl))
 			{
-				using (var url = new NSUrl(videoFile.ThumbnailUrl))
-				using (var data = NSData.FromUrl(url))
-					imageView.Image = UIImage.LoadFromData(data);
+				Task.Factory.StartNew(() =>
+				{
+					BeginInvokeOnMainThread(() =>
+					{
+						using (var url = new NSUrl(videoFile.ThumbnailUrl))
+						using (var data = NSData.FromUrl(url))
+							imageView.Image = UIImage.LoadFromData(data);
+					});
+				});
 			}
 
 			headingLabel.Text = videoFile?.Name ?? "";
+			headingLabel.AccessibilityIdentifier = videoFile.Name;
 			subheadingLabel.Text = videoFile?.Description ?? "";
 		}
 	}

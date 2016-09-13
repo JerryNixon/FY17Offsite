@@ -14,7 +14,7 @@ namespace OneTube.iOS
 		{
 			get
 			{
-				return ((AppDelegate)UIApplication.SharedApplication.Delegate).fileController.SelectedVideo;
+				return ((AppDelegate)UIApplication.SharedApplication.Delegate).SelectedVideo;
 			}
 		}
 

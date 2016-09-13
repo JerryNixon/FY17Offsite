@@ -40,7 +40,7 @@ namespace OneTube.iOS
 
 			activityIndicator.StartAnimating();
 
-			var url = "https://so7ona.bn1302.livefilestore.com/y3mpDt20dWYBs2fSOQnxNbUzM3paqogmLhqENQIQOynmtEAByW8l6Tt4ue7VGmEductTabKPIeG3YkWHZPsEmdBQEvSFresoNotGXE2II0sjAvv9ZqF4cJc6jB7pDOFHOKn3ckjQxWQKl1TsQCEsCN2IDlCdvCMPQUqJ_D6QVEsqiE";
+			var url = appDelegate.SelectedVideo.ContentDownloadUrl;
 			_asset = AVAsset.FromUrl(NSUrl.FromString(url));
 
 			var width = appDelegate.ScreenWidth;
@@ -58,6 +58,27 @@ namespace OneTube.iOS
 
 			activityIndicator.StopAnimating();
 			_player.Play();
+		}
+
+		protected override void Dispose(bool disposing)
+		{
+			base.Dispose(disposing);
+
+			appDelegate.SelectedVideo = null;
+
+			_playerLayer.RemoveFromSuperLayer();
+			_playerLayer.Dispose();
+			_playerLayer = null;
+
+			_player.Pause();
+			_player.Dispose();
+			_player = null;
+
+			_playerItem.Dispose();
+			_playerItem = null;
+
+			_asset.Dispose();
+			_asset = null;
 		}
 	}
 }

@@ -15,7 +15,7 @@ namespace OneTube.UITests
 				return ConfigureApp.Android.StartApp();
 			}
 
-			return ConfigureApp.iOS.StartApp();
+			return ConfigureApp.iOS.AppBundle("/Users/michaelw/GitHub/FY17Offsite/OneTube/iOS/bin/iPhoneSimulator/Debug/OneTube.iOS.app").StartApp();
 		}
 	}
 }

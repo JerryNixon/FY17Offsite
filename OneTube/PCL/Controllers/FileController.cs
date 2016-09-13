@@ -6,50 +6,46 @@ using System.Threading.Tasks;
 using System.Net.Http;
 using Newtonsoft.Json;
 using System.ServiceModel;
+using PCL.Models;
 
 namespace OneTube.Controllers
 {
 	public class FileController
 	{
-		public FileController(string channelUrl)
+		public FileController(Channel channelUrl)
 		{
-			if (string.IsNullOrEmpty(channelUrl))
+			if (channelUrl == null)
 				throw new Exception("You must enter a channel url");
 
 			ChannelUrls.Add(channelUrl);
-			SelectedVideo = new VideoFile { ContentDownloadUrl = "https://onedrive.live.com/?authkey=%21AFjVHmxVFiwCSco&cid=BE501A3A7A1041AE&id=BE501A3A7A1041AE%21879185&parId=BE501A3A7A1041AE%2131831&o=OneUp" };
 		}
 
-		public FileController(List<string> channelUrls)
+		public FileController(List<Channel> channelUrls)
 		{
+			if (channelUrls == null)
+				throw new Exception("You must enter channel urls");
+
 			ChannelUrls = channelUrls;
 		}
 
 		HttpClient client = new HttpClient();
 
-		public List<string> ChannelUrls { get; set; } = new List<string>();
-		public Dictionary<string, List<IFile>> ChannelDictionary = new Dictionary<string, List<IFile>>();
+		public List<Channel> ChannelUrls { get; set; } = new List<Channel>();
+		public Dictionary<Channel, List<IFile>> ChannelDictionary = new Dictionary<Channel, List<IFile>>();
 
-		public VideoFile SelectedVideo { get; set; }
-		public OneDriveFolder SelectedFolder { get; set; }
-
-		public IFile test(int index)
+		public Channel GetChannelByIndex(int index)
 		{
-			var key = ChannelUrls[index];
-			var values = new List<IFile>();
+			if (index > ChannelUrls.Count)
+				return null;
 
-			var success = ChannelDictionary.TryGetValue(key, out values);
-			if (success)
-				return values[0];
-
-			return null;
+			return ChannelUrls[index];
 		}
 
-		public async Task GetAllFoldersJsonContentAsync()
+		public async Task GetMyAllChannelsContentAsync()
 		{
-			List<Task<KeyValuePair<string, List<IFile>>>> pendingTasks = new List<Task<KeyValuePair<string, List<IFile>>>>();
+			List<Task<KeyValuePair<Channel, List<IFile>>>> pendingTasks = new List<Task<KeyValuePair<Channel, List<IFile>>>>();
 			foreach (var channel in ChannelUrls)
-				pendingTasks.Add(GetFolderValuesContentAsync(channel));
+				pendingTasks.Add(GetFolderValuesContentAsync(channel.ChannelUrl));
 
 			while (pendingTasks.Any())
 			{
@@ -61,17 +57,25 @@ namespace OneTube.Controllers
 				// Process the completed task
 				var completed = completedTask.Result;
 
-				ChannelDictionary.Add(completed.Key, completed.Value);
-
-				SelectedFolder = new OneDriveFolder
-				{
-					FolderUrl = completed.Key,
-					FolderContents = completed.Value
-				};
+				if (!ChannelDictionary.ContainsValue(completed.Value))
+					if (!ChannelDictionary.ContainsKey(completed.Key))
+						ChannelDictionary.Add(completed.Key, completed.Value);
 			}
 		}
 
-		public async Task<KeyValuePair<string, List<IFile>>> GetFolderValuesContentAsync(string uri)
+		public async Task<Channel> GetFolderInfoAsync(string uri)
+		{
+			var token = uri.Substring(uri.IndexOf("s!"));
+			var url = $"https://api.onedrive.com/v1.0/shares/{token}/";
+			var result = await client.GetStringAsync(url);
+			var parsedResult = JsonConvert.DeserializeObject<Channel>(result);
+
+			parsedResult.ChannelUrl = uri;
+
+			return parsedResult;
+		}
+
+		public async Task<KeyValuePair<Channel, List<IFile>>> GetFolderValuesContentAsync(string uri)
 		{
 			var token = uri.Substring(uri.IndexOf("s!"));
 			var url = $"https://api.onedrive.com/v1.0/shares/{token}/root/children?expand=thumbnails(select=small)";
@@ -96,25 +100,41 @@ namespace OneTube.Controllers
 				{
 					Name = x.name,
 					Description = "None really to use",
-					//ThumbnailUrl = x?.thumbnails[0]?.small?.url ?? "",
+					ThumbnailUrl = x?.thumbnails?.FirstOrDefault().small?.url ?? "",
 					FolderUrl = x.webUrl,
 				});
 
 			values.AddRange(folders);
 			values.AddRange(videos);
 
-			return new KeyValuePair<string, List<IFile>>(uri, values);
+			url = $"https://api.onedrive.com/v1.0/shares/{token}/";
+			result = await client.GetStringAsync(url);
+
+			var channel = JsonConvert.DeserializeObject<Channel>(result);
+			var channelInList = ChannelUrls.Find(x => x.ChannelUrl == uri);
+
+			if (channelInList != null)
+			{
+				ChannelUrls.Remove(channelInList);
+
+				channelInList.owner = channel.owner;
+				channelInList.name = channel.name;
+
+				ChannelUrls.Add(channelInList);
+			}
+
+			return new KeyValuePair<Channel, List<IFile>>(channelInList, values);
 		}
 
-		public bool AddChannelUrl(string url)
-		{
-			if (string.IsNullOrEmpty(url))
-				return false;
-			if (ChannelUrls.Contains(url))
-				return false;
-
-			ChannelUrls.Add(url);
-			return true;
-		}
+		//public bool AddChannelUrl(string url)
+		//{
+		//	if (string.IsNullOrEmpty(url))
+		//		return false;
+		//	if (ChannelUrls.Contains(url))
+		//		return false;
+		//
+		//	ChannelUrls.Add(url);
+		//	return true;
+		//}
 	}
 }
